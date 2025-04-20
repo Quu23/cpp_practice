@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/programs/cpp_practice/playground",
-      "program": "c:/programs/cpp_practice/playground/build/Debug/outDebug",
+      "cwd": "c:/programs/cpp_practice/study",
+      "program": "c:/programs/cpp_practice/study/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
