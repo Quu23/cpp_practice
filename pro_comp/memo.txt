@@ -1,0 +1,21 @@
+int x = get_side_index(first_pair_indexes, 0) - get_side_index(3, 3, 2);
+    int y = get_side_index(first_pair_indexes, 3) - get_side_index(3, 3, 1);
+
+    if(x == 1 && y == 0) return; // すでにペアができている.
+    if(x == 2 && y == -1){
+        for(int i = 0; i< 3; i++) rotate(board, first_pair_indexes[0] - 1, first_pair_indexes[1], 2);
+        return; //ほんとに終わっていい？
+    }
+
+    if(y >= x){
+        // 一辺がxの領域が取れる. <- 意味不明.
+        rotate(board, 2, first_pair_indexes[1], 2);
+    }else{
+        // x == 2 / y == -1を除かれるはず. 要確認. (どう考えてもy < 0 と y == -1の表記を混ぜて使うべきでない)
+        if(y < 0){
+            int radius = get_side_index(first_pair_indexes, 0) - get_side_index(3, 3, 0);
+            // 二回まわす.
+            rotate(board, first_pair_indexes[0] - 1, first_pair_indexes[1], radius);
+            rotate(board, first_pair_indexes[0] - 1, first_pair_indexes[1], radius);
+        }
+    }

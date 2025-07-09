@@ -11,9 +11,16 @@ void make_random(int board[4][4]);
 
 void print_array(int board[4][4]);
 
+void solve_first(int board[4][4]);
+
+//start_i, start_j は領域の左上隅の添え字
 void solve(int board[4][4]);
 
 void rotate(int board[4][4], int start_i, int start_j, int radius);
+
+std::array<int, 2> rotate(std::array<int, 2> indexes, int start_i, int start_j, int radius);
+
+std::array<int, 2> rotate(int i, int j, int start_i, int start_j, int radius);
 
 std::array<int, 2> search_pair(int board[4][4], int color, int color_i, int color_j);
 
@@ -86,6 +93,21 @@ void rotate(int board[4][4], int start_i, int start_j, int radius){
     }
 }
 
+std::array<int, 2> rotate(std::array<int, 2> indexes, int start_i, int start_j, int radius){
+    int i = indexes[1] + start_j;
+    int j = radius - indexes[0] - 1 + start_i;
+    indexes[0] = i;
+    indexes[1] = j;
+
+    return indexes;
+}
+
+std::array<int, 2> rotate(int i, int j, int start_i, int start_j, int radius){
+    std::array<int, 2> indexes = {0,0};
+    indexes[0] = j + start_j;
+    indexes[1] = radius - i - 1 + start_i;
+}
+
 std::array<int, 2> search_pair(int board[4][4], int color, int color_i, int color_j){
     // [0] ... i, [1] ... j
     std::array<int, 2> pair_indexes = {-1,-1};
@@ -105,12 +127,60 @@ std::array<int, 2> search_pair(int board[4][4], int color, int color_i, int colo
 }
 
 void solve(int board[4][4]){
+    solve_first(board);
+}
+
+void solve_first(int board[4][4]){
     std::array<int, 2> first_pair_indexes = search_pair(board, board[3][3], 3 , 3);
 
-    int x = get_side_index(first_pair_indexes, 0) - get_side_index(3, 3, 2);
-    int y = get_side_index(first_pair_indexes, 3) - get_side_index(3, 3, 1);
+    // (3,3)の上辺とpairの左辺が含まれる領域を探す.
+    for(int r = 2; r <= 3; r++){
+        if(first_pair_indexes[1] == 3 - (r - 1) && first_pair_indexes[0] < 3 && first_pair_indexes[0] >= 3 - r){
+            rotate(board, 3 - r, 3 - (r - 1), r);
+            // 領域上の左上隅以外なら二回回転.
+            if(first_pair_indexes[0] != 3 - r) rotate(board, 3 - r, 3 - (r - 1), r);
 
-    if()
+            first_pair_indexes = rotate(first_pair_indexes, 3 - r, 3 - (r - 1), r);
+
+            // この時点でfirst_pairは3列目にあるはず.
+            if (first_pair_indexes[0] != 3 - 1) rotate(board, first_pair_indexes[0],first_pair_indexes[0] + 1, 3 - first_pair_indexes[0]);
+            // この時点で, 一つ揃った.
+            return;
+        }
+    }
+
+    // 以下は, 4x4の左辺下辺か, (0,2)のどちらか.
+    if (first_pair_indexes[0] == 0 && first_pair_indexes[1] == 2){
+        rotate(board, first_pair_indexes[0], first_pair_indexes[1], 2);
+        rotate(board, 0, 1, 3);
+        return;
+    }
+
+    // 4x4の左辺下辺
+    // i = 3にあるものは回転させることで, j = 0の三つ(i=0,1,2)に帰着できる.
+    if (first_pair_indexes[0] == 3){
+        rotate(board, 1, 0, 3);
+        first_pair_indexes = rotate(first_pair_indexes, 1, 0, 3);
+        if (first_pair_indexes[1] == 2){
+            rotate(board, 1, 0, 3);
+            first_pair_indexes = rotate(first_pair_indexes, 1, 0, 3);
+        }
+    }
+    // j = 0の三つ.
+    if (first_pair_indexes[1] == 0 && first_pair_indexes[0] < 2){
+        rotate(board, 0, 0, 3);
+        rotate(board, 0, 1, 3);
+        // 多分これで場合分けを計算に落とし込んだ.
+        rotate(board, 1 - first_pair_indexes[0], 2 - first_pair_indexes[0], 2 + first_pair_indexes[0]);
+        return;
+    }
+    if (first_pair_indexes[1] == 0 && first_pair_indexes[0] == 2){
+        rotate(board, 1, 0, 3);
+        rotate(board, 1, 1, 2);
+        rotate(board, 1, 2, 2);
+        rotate(board, 1, 2, 2); //二回でそろう.
+        return;
+    }
 }
 
 void print_array(int board[4][4]) {
