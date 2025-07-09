@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include <array>
 
 using namespace std;
 using Matrix = std::vector<std::vector<int>>;
@@ -13,6 +14,8 @@ void print_array(int board[4][4]);
 void solve(int board[4][4]);
 
 void rotate(int board[4][4], int start_i, int start_j, int radius);
+
+std::array<int, 2> search_pair(int board[4][4], int color, int color_i, int color_j);
 
 int main(){
     int board[4][4] = {
@@ -79,8 +82,26 @@ void rotate(int board[4][4], int start_i, int start_j, int radius){
     }
 }
 
-void solve(int board[4][4]){
+std::array<int, 2> search_pair(int board[4][4], int color, int color_i, int color_j){
+    // [0] ... i, [1] ... j
+    std::array<int, 2> pair_indexes = {-1,-1};
+    
+    for (int i = 0; i < 4; i++){
+        for (int j = 0; j < 4; j++){
+            if(i == color_i && j == color_j) continue;
+            if(board[i][j] == color){
+                pair_indexes[0] = i;
+                pair_indexes[1] = j;
+                return pair_indexes;
+            }
+        }
+    }
 
+    throw std::runtime_error("Probably, the board does not have pair.");    
+}
+
+void solve(int board[4][4]){
+    std::array<int, 2> first_pair_indexes = search_pair(board, board[3][3], 3 , 3);
 }
 
 void print_array(int board[4][4]) {
