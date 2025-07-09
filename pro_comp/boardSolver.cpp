@@ -13,16 +13,13 @@ void print_array(int board[4][4]);
 
 void solve(int board[4][4]);
 
-void solve_first(int board[4][4]);
-
-//start_i, start_j は領域の左上隅の添え字
 void rotate(int board[4][4], int start_i, int start_j, int radius);
 
-std::array<int, 2> rotate(std::array<int, 2> indexes, int start_i, int start_j, int radius);
-
-std::array<int, 2> rotate(int i, int j, int start_i, int start_j, int radius);
-
 std::array<int, 2> search_pair(int board[4][4], int color, int color_i, int color_j);
+
+int get_side_index(int i, int j, int direction);
+
+int get_side_index(std::array<int, 2> indexes, int direction);
 
 int main(){
     int board[4][4] = {
@@ -107,42 +104,13 @@ std::array<int, 2> search_pair(int board[4][4], int color, int color_i, int colo
     throw std::runtime_error("Probably, the board does not have pair.");    
 }
 
-std::array<int, 2> rotate(std::array<int, 2> indexes, int start_i, int start_j, int radius){
-    int i = indexes[1] + start_j;
-    int j = radius - indexes[0] - 1 + start_i;
-    indexes[0] = i;
-    indexes[1] = j;
-
-    return indexes;
-}
-
-std::array<int, 2> rotate(int i, int j, int start_i, int start_j, int radius){
-    std::array<int, 2> indexes = {0,0};
-    indexes[0] = j + start_j;
-    indexes[1] = radius - i - 1 + start_i;
-}
-
 void solve(int board[4][4]){
-   solve_first(board);
-}
-
-void solve_first(int board[4][4]){
     std::array<int, 2> first_pair_indexes = search_pair(board, board[3][3], 3 , 3);
 
-    for(int r = 2; r <= 3; r++){
-        if(first_pair_indexes[1] == 3 - (r - 1) && first_pair_indexes[0] < 3 && first_pair_indexes[0] >= 3 - r){
-            rotate(board, 3 - r, 3 - (r - 1), r);
-            // 領域上の左上隅以外なら二回回転.
-            if(first_pair_indexes[0] != 3 - r) rotate(board, 3 - r, 3 - (r - 1), r);
+    int x = get_side_index(first_pair_indexes, 0) - get_side_index(3, 3, 2);
+    int y = get_side_index(first_pair_indexes, 3) - get_side_index(3, 3, 1);
 
-            first_pair_indexes = rotate(first_pair_indexes, 3 - r, 3 - (r - 1), r);
-
-            // この時点でfirst_pairは3列目にあるはず.
-            if (first_pair_indexes[0] != 3 - 1) rotate(board, first_pair_indexes[0],first_pair_indexes[0] + 1, 3 - first_pair_indexes[0]);
-            // この時点で, 一つ揃った.
-            return;
-        }
-    }
+    if()
 }
 
 void print_array(int board[4][4]) {
@@ -154,3 +122,18 @@ void print_array(int board[4][4]) {
     }
 }
 
+/** direction : Left 0 / Above 1 / Right 2 / Below 3*/
+int get_side_index(int i, int j, int direction){
+    if(direction > 3 || direction < 0) throw std::runtime_error("direction must be between 0 and 3!!");
+
+    if(direction % 2 == 0){
+        return direction == 0 ? 5 - j : 5 - j - 1;
+    }else{
+        return direction == 1 ? 5 - i : 5 - i - 1;
+    }
+}
+
+/** direction : Left 0 / Above 1 / Right 2 / Below 3*/
+int get_side_index(std::array<int, 2> indexes, int direction){
+    return get_side_index(indexes[0], indexes[1], direction);
+}
