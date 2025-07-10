@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ctime>
 #include <vector>
 #include <algorithm>
 #include <random>
@@ -32,10 +33,10 @@ int rotate_count = 0;
 
 int main(){
     int board[4][4] = {
-        {0,1,2,3},
-        {0,1,2,3},
-        {4,5,6,7},
-        {4,5,6,7},
+        {5,5,2,1,},
+        {0,7,3,2,},
+        {6,0,7,4,},
+        {3,4,6,1,},
     };
     std::cout << "\n" << "count = " << rotate_count << "\n\n";
 
@@ -65,8 +66,7 @@ void make_random(int board[4][4]){
         temp_vec.push_back(i);
     }
 
-    std::random_device seed_gen;
-    std::mt19937 engine(seed_gen());
+    std::mt19937 engine(static_cast<unsigned int>(std::time(nullptr)));
     std::shuffle(temp_vec.begin(), temp_vec.end(), engine);
 
     for (int i = 0; i < 4; i++) {
@@ -108,18 +108,22 @@ void rotate(int board[4][4], int start_i, int start_j, int radius){
 }
 
 std::array<int, 2> rotate(std::array<int, 2> indexes, int start_i, int start_j, int radius){
-    int i = radius - (indexes[1] - start_j) - 1;
-    int j = indexes[0] - start_i;
-    indexes[0] = i + start_i;
-    indexes[1] = j + start_j;
+    int i_rel = indexes[0] - start_i;
+    int j_rel = indexes[1] - start_j;
+
+    indexes[0] = j_rel + start_i;
+    indexes[1] = radius - 1 - i_rel + start_j;
 
     return indexes;
 }
 
 std::array<int, 2> rotate(int i, int j, int start_i, int start_j, int radius){
-    std::array<int, 2> indexes = {0,0};
-    indexes[0] = radius - j - 1 + start_i;
-    indexes[1] = i + start_j;
+    std::array<int, 2> indexes = {-1, -1};
+    int i_rel = i - start_i;
+    int j_rel = j - start_j;
+
+    indexes[0] = j_rel + start_i;
+    indexes[1] = radius - 1 - i_rel + start_j;
     return indexes;
 }
 
@@ -158,15 +162,17 @@ void solve_first(int board[4][4]){
     for(int r = 2; r <= 3; r++){
         if(first_pair_indexes[1] == 3 - (r - 1) && first_pair_indexes[0] < 3 && first_pair_indexes[0] >= 3 - r){
             rotate(board, 3 - r, 3 - (r - 1), r);
-            // 領域上の左上隅以外なら二回回転.
-            if(first_pair_indexes[0] != 3 - r) rotate(board, 3 - r, 3 - (r - 1), r);
 
-            first_pair_indexes = rotate(first_pair_indexes, 3 - r, 3 - (r - 1), r); //ここで回転してないのがエラーの原因...
+            // 領域上の左上隅以外なら二回回転.
+            if(first_pair_indexes[0] != 3 - r) {
+                rotate(board, 3 - r, 3 - (r - 1), r);
+                first_pair_indexes = rotate(first_pair_indexes, 3 - r, 3 - (r - 1), r);
+            }
+            first_pair_indexes = rotate(first_pair_indexes, 3 - r, 3 - (r - 1), r);
 
             // この時点でfirst_pairは3列目にあるはず.
             if (first_pair_indexes[0] != 3 - 1) rotate(board, first_pair_indexes[0], first_pair_indexes[0] + 1, 3 - first_pair_indexes[0]);
             // この時点で, 一つ揃った.
-            std::cout << first_pair_indexes[0] << "aaa";
             return;
         }
     }
@@ -175,28 +181,27 @@ void solve_first(int board[4][4]){
     if (first_pair_indexes[0] == 0 && first_pair_indexes[1] == 2){
         rotate(board, first_pair_indexes[0], first_pair_indexes[1], 2);
         rotate(board, 0, 1, 3);
-        std::cout << "bbb";
         return;
     }
 
     // 4x4の左辺下辺
-    // i = 3にあるものは回転させることで, j = 0の三つ(i=0,1,2)に帰着できる.
+    // i = 3にあるものは回転させることで, j = 0の三つ(i = 0,1,2)に帰着できる.
     if (first_pair_indexes[0] == 3){
         rotate(board, 1, 0, 3);
         first_pair_indexes = rotate(first_pair_indexes, 1, 0, 3);
-        if (first_pair_indexes[1] == 2){
+        if (first_pair_indexes[0] == 3){
             rotate(board, 1, 0, 3);
             first_pair_indexes = rotate(first_pair_indexes, 1, 0, 3);
         }
-        std::cout << "ppp";
     }
     // j = 0の三つ.
     if (first_pair_indexes[1] == 0 && first_pair_indexes[0] < 2){
         rotate(board, 0, 0, 3);
+        first_pair_indexes = rotate(first_pair_indexes, 0, 0, 3);
         rotate(board, 0, 1, 3);
+        first_pair_indexes = rotate(first_pair_indexes, 0, 1, 3);
         // 多分これで場合分けを計算に落とし込んだ.
-        rotate(board, 1 - first_pair_indexes[0], 2 - first_pair_indexes[0], 2 + first_pair_indexes[0]);
-        std::cout << "ccc";
+        rotate(board, first_pair_indexes[0], 1 + first_pair_indexes[0], 3 - first_pair_indexes[0]);
         return;
     }
     if (first_pair_indexes[1] == 0 && first_pair_indexes[0] == 2){
@@ -204,17 +209,17 @@ void solve_first(int board[4][4]){
         rotate(board, 1, 1, 2);
         rotate(board, 1, 2, 2);
         rotate(board, 1, 2, 2); //二回でそろう.
-        std::cout << "ddd";
         return;
     }
 }
 
 void print_array(int board[4][4]) {
     for (int i = 0; i < 4; i++){
+        std::cout << "{";
         for (int j = 0; j < 4; j++){
-            std::cout << board[i][j] << " ";
+            std::cout << board[i][j] << ",";
         }
-        std::cout << "\n";
+        std::cout << "},\n";
     }
 }
 
