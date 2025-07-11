@@ -14,6 +14,8 @@ void print_array(int board[4][4]);
 
 void solve_first(int board[4][4]);
 
+void solve_second(int board[4][4]);
+
 //start_i, start_j は領域の左上隅の添え字
 void solve(int board[4][4]);
 
@@ -32,11 +34,17 @@ int get_side_index(std::array<int, 2> indexes, int direction);
 int rotate_count = 0;
 
 int main(){
+    /*
+        {0,0,1,1,},
+        {2,2,3,3,},
+        {4,4,5,5,},
+        {6,6,7,7,},
+    */
     int board[4][4] = {
-        {5,5,2,1,},
-        {0,7,3,2,},
-        {6,0,7,4,},
-        {3,4,6,1,},
+{1,5,6,2,},
+{0,1,0,4,},
+{6,2,7,4,},
+{7,3,3,5,},
     };
     std::cout << "\n" << "count = " << rotate_count << "\n\n";
 
@@ -147,6 +155,8 @@ std::array<int, 2> search_pair(int board[4][4], int color, int color_i, int colo
 
 void solve(int board[4][4]){
     solve_first(board);
+    solve_second(board);
+    std::cout << "===end===\n";
 }
 
 void solve_first(int board[4][4]){
@@ -210,6 +220,56 @@ void solve_first(int board[4][4]){
         rotate(board, 1, 2, 2);
         rotate(board, 1, 2, 2); //二回でそろう.
         return;
+    }
+}
+
+void solve_second(int board[4][4]){
+    std::array<int, 2> second_pair_indexes = search_pair(board, board[0][3], 0 , 3);
+
+    if(second_pair_indexes[0] == 1 && second_pair_indexes[1] == 3) return;
+
+    std::cout << second_pair_indexes[0] << ", " << second_pair_indexes[1] << "\n";
+
+    // i = 1　に帰着させる.
+    if(second_pair_indexes[0] == 3){
+        if(second_pair_indexes[1] != 0) rotate(board, 1, 0, 3);
+        rotate(board, 1, 0, 3);
+
+        if(second_pair_indexes[1] != 0) second_pair_indexes = rotate(second_pair_indexes, 1, 0, 3);
+        second_pair_indexes = rotate(second_pair_indexes, 1, 0, 3);
+    }
+
+    // i = 0に帰着させる.
+    if(second_pair_indexes[0] == 2){
+        if(second_pair_indexes[1] == 0) rotate(board, 0, 0, 3);
+        rotate(board, 0, 0, 3);
+
+        if(second_pair_indexes[1] == 0) second_pair_indexes = rotate(second_pair_indexes, 0, 0, 3);
+        second_pair_indexes = rotate(second_pair_indexes, 0, 0, 3);
+    }
+
+    // i = 0に帰着させる.
+    if(second_pair_indexes[0] == 1){
+        if(second_pair_indexes[1] == 0){
+            rotate(board, 0, 0, 3);
+            second_pair_indexes = rotate(second_pair_indexes, 0, 0, 3);
+        }else if(second_pair_indexes[1] == 1){
+            rotate(board, 0, 1, 2);
+            second_pair_indexes = rotate(second_pair_indexes, 0, 1, 2);
+        }else if(second_pair_indexes[2] == 2){
+            rotate(board, 0, 1, 2);
+            second_pair_indexes = rotate(second_pair_indexes, 0, 1, 2);
+            rotate(board, 0, 1, 2);
+            second_pair_indexes = rotate(second_pair_indexes, 0, 1, 2);
+        }
+    }
+
+    // ここで, そろえてみる.
+    if(second_pair_indexes[0] == 0){
+        if (second_pair_indexes[1] < 2){
+            rotate(board, 0, second_pair_indexes[1], 3 - second_pair_indexes[1]);
+        }
+        rotate(board, 0, 2, 2);
     }
 }
 
