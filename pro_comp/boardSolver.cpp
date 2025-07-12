@@ -18,6 +18,8 @@ void solve_second(int board[4][4]);
 
 void solve_third(int board[4][4]);
 
+void solve_forth(int board[4][4]);
+
 //start_i, start_j は領域の左上隅の添え字
 void solve(int board[4][4]);
 
@@ -160,6 +162,7 @@ void solve(int board[4][4]){
     solve_first(board);
     solve_second(board);
     solve_third(board);
+    solve_forth(board);
     std::cout << "===end===\n";
 }
 
@@ -277,6 +280,10 @@ void solve_second(int board[4][4]){
     }
 }
 
+
+// memo: なんとなくだけど, 添え字の和を使うとうまく条件かけるのか？
+// memo: 仮に, 与えられた二つのマスの距離を評価するときには, 回転に対称性がないことを留意して評価しないといけなさそう.
+
 /*
 方針: すでにj=3列はそろっているから, i=0,1,j=2に揃えたい. 基準色をi=0,j=2としておく.
 凡例 (i,j)
@@ -311,6 +318,39 @@ void solve_third(int board[4][4]){
 
     // 内側
     for(int i = 0; i < third_pair_indexes[0]+third_pair_indexes[1] - 1; i++)rotate(board, 1, 1, 2); //i+jは2,3,4しかないから, -1した分がちょうど回転数.
+}
+
+/*
+方針: i = 0のときは, 2 - j回(0,0)で半径2回転させ, i = 1に帰着させる.
+i > 0のときは, i=1のときは(1,0)で, それ以外は(2,0)で適当な回数回転させる.
+=> (2,1)に集めたら, それを(2,1)で2マス回転.
+*/ 
+void solve_forth(int board[4][4]){
+    std::array<int, 2> forth_pair_indexes = search_pair(board, board[2][2], 2, 2);
+
+    if(forth_pair_indexes[0] == 3 && forth_pair_indexes[1] == 2)return; // すでにそろっている.
+
+    // i = 1に帰着.
+    if(forth_pair_indexes[0] == 0){
+        {
+            int count = 2 - forth_pair_indexes[1]; // forth_pair_indexes[1]に依存するから保存しておく.
+            for(int i = 0; i < count; i++){
+                rotate(board, 0, 0, 2);
+                forth_pair_indexes = rotate(forth_pair_indexes, 0, 0, 2);
+            }
+        }
+    }
+
+    if(forth_pair_indexes[0] == 1){
+        for(int i = 0; i < 2 - forth_pair_indexes[1]; i++){
+                rotate(board, 1, 0, 2);
+        }
+    }
+
+    // i = 2,3のとき.
+    for(int i = 0; i < forth_pair_indexes[0] + forth_pair_indexes[1] - 1; i++)rotate(board, 2, 0, 2); //i+jは2,3,4しかないから, -1したら回転数.
+
+    rotate(board, 2, 1, 2); // これでそろう.
 }
 
 void print_array(int board[4][4]) {
