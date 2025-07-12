@@ -16,6 +16,8 @@ void solve_first(int board[4][4]);
 
 void solve_second(int board[4][4]);
 
+void solve_third(int board[4][4]);
+
 //start_i, start_j は領域の左上隅の添え字
 void solve(int board[4][4]);
 
@@ -115,6 +117,7 @@ void rotate(int board[4][4], int start_i, int start_j, int radius){
     std::cout << "\n" << "count = " << rotate_count << "\n\n";
 }
 
+// memo : 多分回転1のやつも(Do Nothingとして)実装しておくと, プログラムの分がよりエレガントに書けそう.
 std::array<int, 2> rotate(std::array<int, 2> indexes, int start_i, int start_j, int radius){
     int i_rel = indexes[0] - start_i;
     int j_rel = indexes[1] - start_j;
@@ -156,6 +159,7 @@ std::array<int, 2> search_pair(int board[4][4], int color, int color_i, int colo
 void solve(int board[4][4]){
     solve_first(board);
     solve_second(board);
+    solve_third(board);
     std::cout << "===end===\n";
 }
 
@@ -271,6 +275,42 @@ void solve_second(int board[4][4]){
         }
         rotate(board, 0, 2, 2);
     }
+}
+
+/*
+方針: すでにj=3列はそろっているから, i=0,1,j=2に揃えたい. 基準色をi=0,j=2としておく.
+凡例 (i,j)
+(0,1)に揃える場合(pattern 1)と, (1,2)に揃える場合(pattern 2)
+pattern 1: i=0が対象. (0,1)に揃え, (0,1)で2マス回転.
+pattern 2: (1,2)に揃える.
+*/ 
+void solve_third(int board[4][4]){
+    std::array<int, 2> third_pair_indexes = search_pair(board, board[0][2], 0, 2);
+    
+    // pattern 1
+    if(third_pair_indexes[0] == 0){
+        if(third_pair_indexes[1] == 0) rotate(board, 0, 0, 2);
+        rotate(board, 0, 1, 2);
+        return;
+    }
+
+    // pattern 2
+    // まずは外側L字型から
+    if(third_pair_indexes[0] == 3 || third_pair_indexes[1] == 0){
+        // いったん, (2,0), (3,1)は別の場所に帰着させる.
+        if(third_pair_indexes[0] == 2 && third_pair_indexes[1] == 0){
+            rotate(board, 1, 0, 2);
+            third_pair_indexes = rotate(third_pair_indexes, 1, 0, 2);   
+        }else if(third_pair_indexes[0] == 3 && third_pair_indexes[1] == 1){
+            rotate(board, 2, 0, 2);
+            third_pair_indexes = rotate(third_pair_indexes, 2, 0, 2);   
+        }
+        for(int i = 0; i < (third_pair_indexes[0]+third_pair_indexes[1] + 1)/2; i++)rotate(board, 1, 0, 3); //i+jは1,3,5しかないから, +1して2で割った分がちょうど回転数.
+        return;
+    }
+
+    // 内側
+    for(int i = 0; i < third_pair_indexes[0]+third_pair_indexes[1] - 1; i++)rotate(board, 1, 1, 2); //i+jは2,3,4しかないから, -1した分がちょうど回転数.
 }
 
 void print_array(int board[4][4]) {
